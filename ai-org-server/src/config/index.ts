@@ -9,7 +9,7 @@ dotenv.config({ path: path.resolve(__dirname, '../../.env') })
 
 function required(name: string, fallback?: string): string {
   const value = process.env[name] ?? fallback
-  if (!value) {
+  if (!value) {console.error(`⚠️  Missing required env var: ${name}`);
     throw new Error(`Missing required env var: ${name}`)
   }
   return value
