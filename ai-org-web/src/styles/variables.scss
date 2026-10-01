@@ -1,0 +1,34 @@
+// AI Organization Solution Hub - 全局 SCSS 变量
+
+// 颜色
+$ink-950: #080808;
+$ink-900: #0a0a0a;
+$ink-800: #101010;
+$ink-700: #181818;
+$ink-600: #222222;
+
+$gold-500: #d4af37;
+$gold-400: #dcc05a;
+$gold-300: #e5d084;
+$gold-200: #eddfae;
+
+// 间距
+$max-width-wide: 1320px;
+$max-width-reading: 720px;
+
+// 字体
+$font-display: "PingFang SC", "Microsoft YaHei", system-ui, sans-serif;
+$font-sans: "PingFang SC", "Microsoft YaHei", system-ui, sans-serif;
+
+// 过渡
+$ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+$ease-out-quart: cubic-bezier(0.25, 1, 0.5, 1);
+$duration-base: 0.4s;
+$duration-slow: 0.8s;
+
+// 断点
+$bp-sm: 640px;
+$bp-md: 768px;
+$bp-lg: 1024px;
+$bp-xl: 1280px;
+$bp-2xl: 1536px;
