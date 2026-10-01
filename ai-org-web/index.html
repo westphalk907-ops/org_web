@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="zh-CN" class="dark">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="道可乾元 Do Core - 企业 AI 组织变革的知识与解决方案中心。从 AI 使用，到 AI 组织，重新设计人、AI 与工作的协作方式。" />
+    <meta name="keywords" content="AI 组织变革, 企业 AI, AI 转型, AI 培训, AI 咨询, AI 工作流, AI 团队建设, 道可乾元, Do Core" />
+    <meta name="theme-color" content="#0a0a0a" />
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="道可乾元 Do Core · 企业 AI 组织变革" />
+    <meta property="og:description" content="从 AI 使用，到 AI 组织。重新设计人、AI 与工作的协作方式。" />
+    <title>道可乾元 Do Core | 企业 AI 组织变革解决方案</title>
+
+    <!--
+      开发环境引导：
+      如果有人直接双击 index.html 用 file:// 打开，Vue SPA 在 module 模式下会因
+      CORS 失败而出现「点击无反应 / 跳转异常」等诡异问题。这里拦截一次，
+      给用户清晰的提示并自动跳到 Vite dev server。
+    -->
+    <script>
+      (function () {
+        if (location.protocol === 'file:') {
+          document.documentElement.style.background = '#0a0a0a';
+          document.documentElement.style.color = '#f5f5f5';
+          document.documentElement.style.fontFamily =
+            '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "PingFang SC", "Microsoft YaHei", sans-serif';
+          document.addEventListener('DOMContentLoaded', function () {
+            document.body.innerHTML =
+              '<div style="max-width:640px;margin:10vh auto;padding:32px;border:1px solid rgba(212,175,55,.4);border-radius:16px;background:rgba(20,20,20,.92);line-height:1.7">' +
+              '<h1 style="margin:0 0 12px;font-size:22px;color:#f5d76e">需要通过 Vite 访问首页</h1>' +
+              '<p style="margin:0 0 8px">你当前是通过 <code>file://</code> 协议打开的，ES Module + 路由会被浏览器 CORS 拦截，导致点击没反应。</p>' +
+              '<p style="margin:0 0 16px">请在浏览器地址栏输入：</p>' +
+              '<p style="margin:0 0 24px;padding:14px 16px;border-radius:10px;background:#111;border:1px dashed rgba(212,175,55,.5);font-family:ui-monospace,Menlo,Consolas,monospace;color:#f5d76e">http://localhost:5173/</p>' +
+              '<p style="margin:0;color:#bbb;font-size:14px">如果 Vite 没运行，回到项目根目录执行：<br><code style="color:#f5d76e">pnpm dev</code></p>' +
+              '</div>';
+          });
+          // 阻止后续脚本继续执行（已不会再加载 main.ts）
+          throw new Error('Blocked file:// load. Use http://localhost:5173/');
+        }
+      })();
+    </script>
+  </head>
+  <body class="bg-ink-950 text-ink-100 antialiased">
+    <div id="app"></div>
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>
