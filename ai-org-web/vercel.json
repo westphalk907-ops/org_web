@@ -1,0 +1,9 @@
+{
+  "buildCommand": "pnpm build",
+  "outputDirectory": "dist",
+  "framework": "vite",
+  "regions": ["sin1"],
+  "github": {
+    "silent": true
+  }
+}
