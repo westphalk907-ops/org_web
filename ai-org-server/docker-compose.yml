@@ -1,0 +1,63 @@
+# =====================================================================
+# 本地开发用 docker-compose：只启动 PostgreSQL
+# 后端和前端请用本地 Node 进程跑（pnpm dev），
+# 或者参考 ../DEPLOYMENT.md 用 Dockerfile 部署。
+# =====================================================================
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: ai-org-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: aiorg
+      POSTGRES_PASSWORD: aiorg_dev_password
+      POSTGRES_DB: aiorg
+      POSTGRES_INITDB_ARGS: "--encoding=UTF8"
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U aiorg -d aiorg"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  # ---------------------------------------------------------------
+  # 生产部署时启用以下 backend 服务（取消注释 + 填入真实值）：
+  #
+  #   backend:
+  #     build:
+  #       context: .
+  #       dockerfile: Dockerfile
+  #     image: ai-org-server:latest
+  #     container_name: ai-org-server
+  #     restart: unless-stopped
+  #     environment:
+  #       NODE_ENV: production
+  #       PORT: 4000
+  #       DATABASE_URL: postgresql://aiorg:aiorg_dev_password@postgres:5432/aiorg?schema=public
+  #       JWT_SECRET: ${JWT_SECRET:?JWT_SECRET must be set}
+  #       JWT_EXPIRES_IN: 7d
+  #       UPLOAD_DIR: /app/uploads
+  #       MAX_FILE_SIZE_MB: 20
+  #       CORS_ORIGINS: https://your-domain.com
+  #     ports:
+  #       - "4000:4000"
+  #     volumes:
+  #       - backend_uploads:/app/uploads
+  #     depends_on:
+  #       postgres:
+  #         condition: service_healthy
+  #
+  # 启动：
+  #   cp .env.example .env   # 填入真实值
+  #   docker compose up -d --build
+  # ---------------------------------------------------------------
+
+volumes:
+  postgres_data:
+    name: ai-org-postgres-data
+  # backend_uploads:
+  #   name: ai-org-server-uploads
