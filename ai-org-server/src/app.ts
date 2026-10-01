@@ -40,16 +40,14 @@ export function createApp(): Express {
     })
   )
 
-  // 健康检查
+  // 健康检查 - 不依赖 DB，确保 Railway 能检测到服务
   app.get('/api/health', (_req, res) => {
-    res.json(
-      ok({
-        status: 'ok',
-        env: config.env,
-        time: new Date().toISOString(),
-        version: '1.0.0',
-      })
-    )
+    res.status(200).json({
+      status: 'ok',
+      env: config.env,
+      time: new Date().toISOString(),
+      version: '1.0.0',
+    })
   })
 
   // 业务路由
