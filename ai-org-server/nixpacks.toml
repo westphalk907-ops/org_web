@@ -1,7 +1,7 @@
 # =====================================================================
 # Railway / Nixpacks 配置
-# 让 Railway 自动识别 pnpm，避免 pnpm: not found
-# 用 --no-frozen-lockfile 因为 package.json 改了但 lockfile 没同步
+# =====================================================================
+# 让 Railway 自动识别并启用 pnpm，避免 "pnpm: not found" 错误
 # =====================================================================
 
 [phases.setup]
@@ -14,4 +14,4 @@ cmds = ["corepack enable", "pnpm install --no-frozen-lockfile"]
 cmds = ["pnpm db:generate", "pnpm build"]
 
 [start]
-cmd = "node dist/index.js"
+cmd = "pnpm exec prisma migrate deploy && node dist/index.js"
