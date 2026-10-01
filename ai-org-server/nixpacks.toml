@@ -1,0 +1,17 @@
+# =====================================================================
+# Railway / Nixpacks 配置
+# 让 Railway 自动识别 pnpm，避免 pnpm: not found
+# 用 --no-frozen-lockfile 因为 package.json 改了但 lockfile 没同步
+# =====================================================================
+
+[phases.setup]
+nixPkgs = ["nodejs_20", "pnpm-9_x"]
+
+[phases.install]
+cmds = ["corepack enable", "pnpm install --no-frozen-lockfile"]
+
+[phases.build]
+cmds = ["pnpm db:generate", "pnpm build"]
+
+[start]
+cmd = "node dist/index.js"
