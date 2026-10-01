@@ -1,0 +1,451 @@
+// =====================================================================
+// AI Organization 数据模型
+// =====================================================================
+// 设计原则：
+//   - 与前端 src/types/content.ts 字段对齐（ContentItem / ContentType）
+//   - 用户态和后台态统一表（避免双写）
+//   - Markdown 内容用 text，文件路径用 string
+//   - 软删除：deletedAt 字段，配合 Prisma 中间件过滤
+// =====================================================================
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// =====================================================================
+// 鉴权
+// =====================================================================
+model Admin {
+  id           String    @id @default(cuid())
+  username     String    @unique
+  email        String    @unique
+  passwordHash String
+  role         AdminRole @default(editor)
+  lastLoginAt  DateTime?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+}
+
+enum AdminRole {
+  super_admin // 全部权限
+  admin // 管理 + 内容
+  editor // 仅内容
+}
+
+// =====================================================================
+// 资料库 Resources（白皮书 / Skill / Prompt / Workflow ...）
+// =====================================================================
+model Resource {
+  id String @id @default(cuid())
+
+  // === 业务字段（与前端 ContentItem 对齐） ===
+  slug      String       @unique
+  type      ResourceType
+  title     String
+  subtitle  String?
+  summary   String       @db.Text
+  thumbnail String?
+  author    String?
+
+  publishedAt DateTime   @default(now())
+  tags        String[] // PostgreSQL 数组
+  topic       Topic?
+  audience    Audience[]
+  industry    String[]
+
+  relatedServices String[]
+
+  // === 文件字段 ===
+  fileUrl  String? // /uploads/xxx.pdf
+  fileType FileType
+  fileName String?
+  fileSize String? // "13.4 MB"
+  pages    Int?
+  cover    String?
+
+  // === 元数据 ===
+  viewCount     Int     @default(0)
+  downloadCount Int     @default(0)
+  isFeatured    Boolean @default(false)
+  sortOrder     Int     @default(0)
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+
+  @@index([type, deletedAt])
+  @@index([publishedAt])
+  @@index([isFeatured, sortOrder])
+}
+
+enum ResourceType {
+  insight
+  research
+  framework
+  playbook
+  case
+  checklist
+  tool
+  prompt
+  skill
+  workflow
+  whitepaper
+}
+
+enum FileType {
+  pdf
+  md
+  doc
+  docx
+  link
+  notion
+  zip
+}
+
+enum Topic {
+  individual
+  workflow
+  team
+  organization
+  governance
+}
+
+enum Audience {
+  ceo
+  hr
+  business
+  it
+  manager
+}
+
+// =====================================================================
+// 内容 Contents（深度洞察 / 学习 / 文章详情）
+// =====================================================================
+model Content {
+  id          String          @id @default(cuid())
+  slug        String          @unique
+  category    ContentCategory
+  title       String
+  subtitle    String?
+  excerpt     String          @db.Text // 摘要卡片用
+  cover       String?
+  content     String          @db.Text // Markdown 正文
+  contentHtml String          @db.Text // 预渲染 HTML（性能优化）
+
+  author      String?
+  publishedAt DateTime @default(now())
+  readingTime Int? // 分钟
+  tags        String[]
+  relatedIds  String[] // 关联内容 ID
+
+  // === 文章展示字段（与前端 ArticleItem 对齐） ===
+  /// 公众号文章序号（如 "01"）
+  index      String?
+  /// 关联的认知节点 slug（如 "ai-changing-what"）
+  nodeSlug   String?
+  /// 前台导航归属（决定前台从哪个门户可访问：/learn / /understand / /experience）
+  navSection NavSection @default(learn)
+
+  // 公众号文章特有字段
+  sourceUrl      String? // 公众号原文链接
+  sourcePlatform String? // WECHAT / ZHIHU ...
+
+  isPublished Boolean @default(false)
+  publishedBy String? // Admin.id
+
+  viewCount Int @default(0)
+  likeCount Int @default(0)
+
+  // === 系列归属（新增：2026-09-30） ===
+  seriesId String?
+  series   Series? @relation(fields: [seriesId], references: [id], onDelete: SetNull)
+
+  subTopicId String?
+  subTopic   SubTopic? @relation(fields: [subTopicId], references: [id], onDelete: SetNull)
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+
+  @@index([category, isPublished, deletedAt])
+  @@index([publishedAt])
+  @@index([nodeSlug])
+  @@index([navSection, isPublished, deletedAt])
+  @@index([seriesId, subTopicId])
+}
+
+enum ContentCategory {
+  insight // 深度洞察
+  trend // 趋势
+  point_of_view // 观点
+  field_note // 实践
+  research // 研究
+  whitepaper // 白皮书
+  playbook // 行动手册
+  framework // 框架
+}
+
+// 文章在前台导航的归属栏目
+//   learn      → /learn/{slug}
+//   understand → /understand/{slug}
+//   experience → /experience/{slug}
+enum NavSection {
+  learn
+  understand
+  experience
+}
+
+// =====================================================================
+// 案例 Cases
+// =====================================================================
+model Case {
+  id       String  @id @default(cuid())
+  slug     String  @unique
+  company  String
+  industry String
+  scale    String?
+  title    String
+
+  before       String  @db.Text
+  intervention String  @db.Text
+  after        String  @db.Text
+  next         String? @db.Text
+
+  metrics     Json? // [{ label, value }]
+  testimonial Json? // { quote, author, position }
+  coverImage  String?
+
+  isPublished Boolean  @default(true)
+  publishedAt DateTime @default(now())
+  sortOrder   Int      @default(0)
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+
+  @@index([isPublished, deletedAt, sortOrder])
+}
+
+// =====================================================================
+// 首页配置 HomeConfig（运营文案）
+// =====================================================================
+model HomeConfig {
+  id        String   @id @default(cuid())
+  key       String   @unique // 'hero' / 'painPoints' / 'methodology' / 'resources' / 'cases' ...
+  payload   Json // 任意 JSON 结构
+  updatedAt DateTime @updatedAt
+  updatedBy String? // Admin.id
+}
+
+// =====================================================================
+// 测评 Assessment（提交记录，可选）
+// =====================================================================
+model AssessmentSubmission {
+  id        String  @id @default(cuid())
+  userAgent String?
+  ip        String?
+
+  answers Json // { questionId: score }
+  result  Json // { stage, dimensionScores, topGaps, totalScore, nextStep }
+
+  createdAt DateTime @default(now())
+
+  @@index([createdAt])
+}
+
+// =====================================================================
+// 体验区：场景库 Scenarios
+// 体验区改造后的核心数据模型：
+//   一个 Scenario = 一个具体业务场景的可感知体验（含痛点/对比/工作流/Prompt/资源）
+//   category 决定在 /experience 索引页的 Tab 归类
+// =====================================================================
+model Scenario {
+  id                  String           @id @default(cuid())
+  slug                String           @unique
+  category            ScenarioCategory
+  title               String
+  subtitle            String?
+  heroDesc            String?          @db.Text
+  icon                String? // emoji 或短字符，列表卡片左上角用
+  problem             String           @db.Text // 痛点 / 场景描述
+  /// 传统做法步骤（多行字符串）
+  beforeSteps         String[]
+  /// AI 工作流步骤（多行字符串）
+  afterSteps          String[]
+  /// 可复用 Prompt / Skill（多行字符串）
+  prompts             String[]
+  /// 关联资料 slug
+  resourceSlugs       String[]
+  /// 是否在该场景页显示「加微信咨询」CTA
+  ownerContactEnabled Boolean          @default(true)
+  /// 标签（搜索/筛选用）
+  tags                String[]
+  isActive            Boolean          @default(true)
+  sortOrder           Int              @default(0)
+
+  publishedAt DateTime  @default(now())
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  deletedAt   DateTime?
+
+  @@index([category, isActive, deletedAt, sortOrder])
+}
+
+enum ScenarioCategory {
+  INDIVIDUAL // 个人
+  TEAM // 团队
+  SALES // 销售
+  MARKETING // 市场
+  HR // 人力
+  SERVICE // 客服
+  MANAGEMENT // 管理
+}
+
+// =====================================================================
+// 体验页：地图节点（Individual / Organization / Workflow）
+// 一个 Map 包含多个 stage，对应前端 5 阶段选择器
+// =====================================================================
+model ExperienceMap {
+  id        String         @id @default(cuid())
+  kind      ExperienceKind // INDIVIDUAL | ORGANIZATION | WORKFLOW
+  slug      String         @unique // 如 'individual-map'
+  title     String // 'AI Individual Map'
+  subtitle  String?
+  heroDesc  String? // 顶部描述
+  isActive  Boolean        @default(true)
+  sortOrder Int            @default(0)
+
+  stages ExperienceStage[]
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+
+  @@index([kind, isActive, deletedAt])
+}
+
+enum ExperienceKind {
+  INDIVIDUAL
+  ORGANIZATION
+  WORKFLOW
+}
+
+model ExperienceStage {
+  id    String        @id @default(cuid())
+  mapId String
+  map   ExperienceMap @relation(fields: [mapId], references: [id], onDelete: Cascade)
+
+  stage           String // "01" ~ "05"
+  title           String
+  description     String   @db.Text
+  characteristics String[] // 特征
+  painPoints      String[] // 痛点
+  actions         String[] // 关键动作
+
+  /// 关联资源（首页 /learn 资源），留作可选引用
+  resourceSlugs String[]
+  /// 关联服务链接
+  serviceLinks  Json? // [{ label, href }]
+  /// 扩展结构化数据（如 WorkflowDemo 的 traditional/aiEnabled 对比）
+  details       Json?
+
+  sortOrder Int     @default(0)
+  isActive  Boolean @default(true)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([mapId, sortOrder])
+}
+
+// =====================================================================
+// 测评题库（每个维度一个题组，按 sortOrder 排列）
+// =====================================================================
+model AssessmentQuestion {
+  id          String    @id @default(cuid())
+  slug        String    @unique // 'q-s1'
+  dimension   Dimension // STRATEGY | PEOPLE | WORKFLOW | TECHNOLOGY | DATA | GOVERNANCE | ORGANIZATION
+  text        String    @db.Text
+  description String?   @db.Text
+
+  /// 评分选项：[{ score, label }]
+  options Json
+
+  /// 权重（高级维度加权，可选，默认 1）
+  weight Float @default(1)
+
+  /// 该题所属阶段（如战略 L1/L2）
+  stage     String?
+  sortOrder Int     @default(0)
+  isActive  Boolean @default(true)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([dimension, isActive, sortOrder])
+}
+
+enum Dimension {
+  STRATEGY
+  PEOPLE
+  WORKFLOW
+  TECHNOLOGY
+  DATA
+  GOVERNANCE
+  ORGANIZATION
+}
+
+// =====================================================================
+// 系列 Series（认知地图节点 / 学习模块）
+// 一个 Series 属于一个 navSection（栏目），有自己的 slug / title / desc / cover
+// =====================================================================
+model Series {
+  id          String     @id @default(cuid())
+  slug        String     @unique // ai-changing-what
+  navSection  NavSection // learn / understand / experience
+  title       String // AI 正在改变什么
+  en          String? // AI Changing What
+  desc        String?    @db.Text
+  cover       String?
+  sortOrder   Int        @default(0)
+  isPublished Boolean    @default(true)
+
+  subTopics SubTopic[]
+  contents  Content[]
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+
+  @@index([navSection, isPublished, deletedAt, sortOrder])
+}
+
+// =====================================================================
+// 子主题 SubTopic（二级认知主题）
+// 每个 SubTopic 属于一个 Series
+// 例如 Series=ai-changing-what 下：技术演进 / Agent 形态 / 模型能力 / 产业趋势
+// 注：(seriesId, slug) 组合唯一，确保同一系列下不重复
+// =====================================================================
+model SubTopic {
+  id       String @id @default(cuid())
+  seriesId String
+  series   Series @relation(fields: [seriesId], references: [id], onDelete: Cascade)
+
+  slug      String // tech-evolution（同一系列内唯一）
+  name      String // 技术演进
+  sortOrder Int    @default(0)
+
+  contents Content[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // 业务唯一约束：同一 Series 下 slug 不能重复
+  @@unique([seriesId, slug])
+  @@index([seriesId, sortOrder])
+}
