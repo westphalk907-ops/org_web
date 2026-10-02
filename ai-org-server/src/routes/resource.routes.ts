@@ -1,7 +1,8 @@
 import { Router } from 'express'
 import { z } from 'zod'
 import { authMiddleware, requireRole } from '../middleware/auth.js'
-import { upload, toPublicUrl, formatFileSize } from '../middleware/upload.js'
+import { upload, formatFileSize } from '../middleware/upload.js'
+import { saveBuffer } from '../storage.js'
 import { resourceService } from '../services/resource.service.js'
 import { ok } from '../utils/response.js'
 import { ApiError } from '../utils/apiError.js'
@@ -118,7 +119,8 @@ router.post(
 
       // 处理上传的文件
       if (req.file) {
-        body.fileUrl = toPublicUrl(req.file.path)
+        const { url } = await saveBuffer(req.file.buffer, req.file.originalname, req.file.mimetype)
+        body.fileUrl = url
         body.fileName = body.fileName || req.file.originalname
         if (!body.fileSize) body.fileSize = formatFileSize(req.file.size)
         // 自动按扩展名推断 fileType
@@ -165,7 +167,8 @@ router.put(
       if (typeof body.pages === 'string') body.pages = parseInt(body.pages, 10) || undefined
 
       if (req.file) {
-        body.fileUrl = toPublicUrl(req.file.path)
+        const { url } = await saveBuffer(req.file.buffer, req.file.originalname, req.file.mimetype)
+        body.fileUrl = url
         body.fileName = body.fileName || req.file.originalname
         if (!body.fileSize) body.fileSize = formatFileSize(req.file.size)
       }
