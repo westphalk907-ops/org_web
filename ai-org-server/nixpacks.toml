@@ -1,7 +1,5 @@
 # =====================================================================
-# Railway / Nixpacks 配置
-# =====================================================================
-# 让 Railway 自动识别并启用 pnpm，避免 "pnpm: not found" 错误
+# Railway / Nixpacks 閰嶇疆
 # =====================================================================
 
 [phases.setup]
@@ -11,10 +9,11 @@ nixPkgs = ["nodejs_20", "pnpm-9_x"]
 cmds = ["corepack enable", "pnpm install --no-frozen-lockfile"]
 
 [phases.build]
-cmds = ["pnpm db:generate", "pnpm build"]
+cmds = ["rm -rf dist", "pnpm db:generate", "pnpm build"]
 
 [start]
 cmd = "pnpm exec prisma migrate deploy && node dist/index.js"
+
 [variables]
 DATABASE_URL = "postgresql://neondb_owner:npg_ruhmZN9f4zna@ep-young-bread-b4srzqc7-pooler.c-6.us-east-2.aws.neon.tech/neondb?sslmode=require&channel_binding=require"
 JWT_SECRET = "K8j3d9sLp2qR7vM4xN6wQ1yT5zC8bF2aE9gH3jK7mP4sU6vY0xA1bD5fG8hJ2kL9n"
