@@ -1,0 +1,17 @@
+# Vercel Serverless 部署忽略文件
+node_modules/
+ai-org-web/
+ai-org-web/**
+docs/
+docs/**
+*.md
+.git/
+.github/
+.cursor/
+.start-all.bat
+push-to-github.ps1
+.env
+.env.*
+*.log
+**/*.log
+dist/**
