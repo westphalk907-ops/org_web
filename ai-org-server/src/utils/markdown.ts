@@ -1,17 +1,41 @@
-// 服务端：jsdom 模拟 DOM
+// 服务端 Markdown 渲染 + XSS sanitize
+// 用 sanitize-html 替代 jsdom + dompurify（避免 Vercel ESM/CJS 冲突）
 import { marked } from 'marked'
-import createDOMPurify from 'dompurify'
-import { JSDOM } from 'jsdom'
-
-const window = new JSDOM('').window
-const purify = createDOMPurify(window as any)
+import sanitizeHtml from 'sanitize-html'
 
 /**
  * Markdown → HTML，自动 sanitize 防 XSS
  */
 export function renderMarkdown(md: string): string {
   const raw = marked.parse(md, { async: false }) as string
-  return purify.sanitize(raw)
+  return sanitizeHtml(raw, {
+    allowedTags: [
+      'h1', 'h2', 'h3', 'h4', 'h5', 'h6',
+      'p', 'br', 'hr', 'blockquote',
+      'ul', 'ol', 'li',
+      'strong', 'em', 'b', 'i', 'u', 's', 'del',
+      'code', 'pre',
+      'a', 'img',
+      'table', 'thead', 'tbody', 'tr', 'th', 'td',
+    ],
+    allowedAttributes: {
+      a: ['href', 'title', 'target', 'rel'],
+      img: ['src', 'alt', 'title'],
+      code: ['class'],
+      pre: ['class'],
+    },
+    allowedSchemes: ['http', 'https', 'mailto'],
+    transformTags: {
+      a: (tagName: string, attribs: any) => ({
+        tagName,
+        attribs: {
+          ...attribs,
+          target: '_blank',
+          rel: 'noopener noreferrer',
+        },
+      }),
+    },
+  })
 }
 
 /**
