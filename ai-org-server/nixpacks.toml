@@ -15,3 +15,7 @@ cmds = ["pnpm db:generate", "pnpm build"]
 
 [start]
 cmd = "pnpm exec prisma migrate deploy && node dist/index.js"
+[variables]
+DATABASE_URL = "postgresql://neondb_owner:npg_ruhmZN9f4zna@ep-young-bread-b4srzqc7-pooler.c-6.us-east-2.aws.neon.tech/neondb?sslmode=require&channel_binding=require"
+JWT_SECRET = "K8j3d9sLp2qR7vM4xN6wQ1yT5zC8bF2aE9gH3jK7mP4sU6vY0xA1bD5fG8hJ2kL9n"
+NODE_ENV = "production"
