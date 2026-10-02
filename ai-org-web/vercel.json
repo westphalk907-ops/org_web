@@ -4,7 +4,8 @@
   "framework": "vite",
   "regions": ["sin1"],
   "rewrites": [
-    { "source": "/api/(.*)", "destination": "https://ai-org-server.vercel.app/api/$1" }
+    { "source": "/api/(.*)", "destination": "https://ai-org-server.vercel.app/api/$1" },
+    { "source": "/(.*)", "destination": "/index.html" }
   ],
   "github": {
     "silent": true
