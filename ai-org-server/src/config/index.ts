@@ -9,10 +9,10 @@ dotenv.config({ path: path.resolve(__dirname, '../../.env') })
 
 function required(name: string, fallback?: string): string {
   const value = process.env[name] ?? fallback
-  if (!value) {console.error(`⚠️  Missing required env var: ${name}`);
-    throw new Error(`Missing required env var: ${name}`)
+  if (!value) {
+    console.error(`⚠️  Missing required env var: ${name}`)
   }
-  return value
+  return value ?? ''
 }
 
 function asInt(name: string, fallback: number): number {
@@ -39,7 +39,7 @@ export const config = {
   },
 
   jwt: {
-    secret: required('JWT_SECRET'),
+    secret: process.env.JWT_SECRET || 'dev-insecure-jwt-secret-change-in-production-please',
     expiresIn: process.env.JWT_EXPIRES_IN || '7d',
   },
 
