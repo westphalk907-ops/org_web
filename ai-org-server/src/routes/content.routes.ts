@@ -2,7 +2,8 @@ import { Router } from 'express'
 import { z } from 'zod'
 import { authMiddleware, requireRole } from '../middleware/auth.js'
 import { contentService } from '../services/content.service.js'
-import { uploadImage, toPublicUrl, formatFileSize } from '../middleware/upload.js'
+import { uploadImage, formatFileSize } from '../middleware/upload.js'
+import { saveBuffer } from '../storage.js'
 import { ok } from '../utils/response.js'
 import { ApiError } from '../utils/apiError.js'
 
@@ -229,11 +230,16 @@ router.post(
       if (!req.file) {
         throw ApiError.validation('请上传图片文件（字段名：file）')
       }
-      const url = toPublicUrl(req.file.path)
+      // memoryStorage: 文件在 req.file.buffer
+      const { url, filename } = await saveBuffer(
+        req.file.buffer,
+        req.file.originalname,
+        req.file.mimetype
+      )
       res.json(
         ok({
           url,
-          filename: req.file.filename,
+          filename,
           originalName: req.file.originalname,
           mimetype: req.file.mimetype,
           size: req.file.size,
