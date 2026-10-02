@@ -1,9 +1,10 @@
 {
   "version": 2,
+  "buildCommand": "npx prisma generate",
   "functions": {
     "api/index.ts": {
       "memory": 1024,
       "maxDuration": 60
     }
   }
-}
+}\n
