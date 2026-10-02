@@ -36,6 +36,10 @@ export function createApp(): Express {
   app.use(express.json({ limit: '5mb' }))
   app.use(express.urlencoded({ extended: true, limit: '5mb' }))
 
+  // ⚠️ Vercel Serverless 不支持本地静态文件服务（无持久磁盘）
+  // 静态资源全部走 Vercel Blob / CDN
+  // 本地开发时设置 ENABLE_LOCAL_STATIC=1 可启用本地静态服务
+
   // 健康检查
   app.get('/api/health', (_req, res) => {
     res.status(200).json({
@@ -51,6 +55,7 @@ export function createApp(): Express {
   app.use('/api/auth', authRoutes)
   app.use('/api/resources', resourceRoutes)
   app.use('/api/contents', contentRoutes)
+  // seriesAdminRoutes 必须在 seriesRoutes 之前 mount
   app.use('/api/series', seriesAdminRoutes)
   app.use('/api/series', seriesRoutes)
   app.use('/api/cases', caseRoutes)
@@ -64,3 +69,7 @@ export function createApp(): Express {
 
   return app
 }
+
+// Vercel Serverless default export (also for any nft-style entry)
+const app = createApp()
+export default app
