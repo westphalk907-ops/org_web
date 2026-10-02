@@ -20,20 +20,27 @@ export function sanitizeHtml(input: string): string {
     'link', 'meta', 'base', 'frame', 'frameset', 'noframes',
   ]
   for (const tag of dangerousTags) {
-    const re = new RegExp(`<${tag}\\b[^>]*>[\\s\\S]*?</${tag}>`, 'gi')
+    const re = new RegExp(
+      `<${tag}\\b[^>]*>[\\s\\S]*?</${tag}>`,
+      'gi',
+    )
     html = html.replace(re, '')
+    // 也处理自闭合或未闭合的
     const re2 = new RegExp(`<${tag}\\b[^>]*/?>`, 'gi')
     html = html.replace(re2, '')
   }
 
-  // 2. 移除 on* 事件属性
-  html = html.replace(/\\s+on\\w+\\s*=\\s*("[^"]*"|'[^']*'|[^\\s>]+)/gi, '')
+  // 2. 移除 on* 事件属性（如 onclick, onerror, onload 等）
+  html = html.replace(/\s+on\w+\s*=\s*("[^"]*"|'[^']*'|[^\s>]+)/gi, '')
 
   // 3. 移除 javascript: 协议
-  html = html.replace(/javascript\\s*:/gi, '')
+  html = html.replace(/javascript\s*:/gi, '')
 
-  // 4. 移除危险的 data: 协议（只允许图片 data URI）
-  html = html.replace(/\\s(href|src|action|formaction)\\s*=\\s*("data:(?!image\\/[a-z]+;base64,)|'data:(?!image\\/[a-z]+;base64,))/gi, ' $1=""')
+  // 4. 移除 data: 协议（除了图片）
+  html = html.replace(
+    /\s(href|src|action|formaction)\s*=\s*("data:(?!image\/[a-z]+;base64,)|'data:(?!image\/[a-z]+;base64,))/gi,
+    ' $1=""'
+  )
 
   return html
 }
@@ -50,7 +57,7 @@ export function renderMarkdown(md: string): string {
  * 估算阅读时间（按中文 300 字/分钟、英文 200 词/分钟 估算）
  */
 export function estimateReadingTime(text: string): number {
-  const cnChars = (text.match(/[\\u4e00-\\u9fa5]/g) || []).length
+  const cnChars = (text.match(/[\u4e00-\u9fa5]/g) || []).length
   const enWords = (text.match(/[a-zA-Z]+/g) || []).length
   const minutes = cnChars / 300 + enWords / 200
   return Math.max(1, Math.ceil(minutes))
