@@ -3,8 +3,11 @@ import { defineConfig } from 'tsup'
 export default defineConfig({
   entry: {
     'index': 'src/index.ts',
+    'app': 'src/app.ts',
+    'api/index': 'api/index.ts',
   },
   outDir: 'dist',
+  // ESM 输出（与 package.json type: module 兼容）
   format: ['esm'],
   target: 'node20',
   platform: 'node',
