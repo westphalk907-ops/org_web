@@ -1,5 +1,6 @@
 // Vercel Serverless Function 入口
 // 必须包含完整代码，因为 Vercel 会编译这个文件
+// 不依赖 ../src 或 ../dist（避免双重构建冲突）
 import express, { type Express, type Request, type Response, type NextFunction } from 'express'
 import cors from 'cors'
 import { config } from '../src/config/index.js'
