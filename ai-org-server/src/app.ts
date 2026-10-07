@@ -11,6 +11,7 @@ import experienceRoutes from './routes/experience.routes.js'
 import scenarioRoutes from './routes/scenario.routes.js'
 import seriesRoutes from './routes/series.routes.js'
 import seriesAdminRoutes from './routes/series.admin.routes.js'
+import aiToolRoutes from './routes/aiTool.routes.js'
 
 export function createApp(): Express {
   const app = express()
@@ -62,6 +63,8 @@ export function createApp(): Express {
   app.use('/api/home-config', homeConfigRoutes)
   app.use('/api/experience', experienceRoutes)
   app.use('/api', scenarioRoutes)
+  // AI 工具导航（公开 + 提交）
+  app.use('/api/ai-tools', aiToolRoutes)
 
   // 404 + error
   app.use(notFoundMiddleware)
