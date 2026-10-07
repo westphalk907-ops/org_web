@@ -449,3 +449,68 @@ model SubTopic {
   @@unique([seriesId, slug])
   @@index([seriesId, sortOrder])
 }
+
+// =====================================================================
+// AI 工具导航 AiTool
+//   - name: 工具名称
+//   - slug: URL 友好的唯一标识
+//   - url: 官方网址
+//   - icon: emoji 图标
+//   - category: 分类（chat/image/video/office/code/search/writing/audio/learning/agent）
+//   - accessType: 国内/全球（DOMESTIC / GLOBAL）
+//   - priceType: FREE / FREEMIUM / PAID
+//   - description: 简介
+//   - tags: JSON 数组字符串
+//   - isFeatured: 是否精选
+//   - sortOrder: 排序
+//   - clickCount: 点击次数统计
+//   - status: ACTIVE / HIDDEN
+// =====================================================================
+model AiTool {
+  id           Int      @id @default(autoincrement())
+  name         String   @unique
+  slug         String   @unique
+  url          String
+  icon         String   @default("🤖")
+  category     String
+  accessType   String   @default("GLOBAL")
+  priceType    String   @default("FREEMIUM")
+  description  String   @db.Text
+  tags         String   @default("[]")
+  isFeatured   Boolean  @default(false)
+  sortOrder    Int      @default(0)
+  clickCount   Int      @default(0)
+  status       String   @default("ACTIVE")
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@index([category])
+  @@index([accessType])
+  @@index([isFeatured])
+  @@index([status])
+  @@index([createdAt])
+}
+
+// =====================================================================
+// AI 工具提交记录 AiToolSubmission（用户提交的工具，待审核）
+// =====================================================================
+model AiToolSubmission {
+  id          String   @id @default(cuid())
+  name        String
+  url         String
+  category    String
+  description String   @db.Text
+  reason      String?  @db.Text
+  email       String?
+  ipAddress   String?  @db.Text  // 提交者 IP（合规审计）
+  userAgent   String?  @db.Text  // 浏览器 UA（合规审计）
+  status      String   @default("PENDING") // PENDING / APPROVED / REJECTED
+  reviewerId  String?
+  reviewNote  String?  @db.Text
+  reviewedAt  DateTime?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([status])
+  @@index([createdAt])
+}
